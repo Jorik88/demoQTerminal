@@ -7,11 +7,13 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class CheckClientRequest {
+public class BasePaymentRequest {
 
     private String command;
     private String txn_id;
+    private String txn_date;
     private String account;
     private String sum;
     private String ccy;
+
 }
