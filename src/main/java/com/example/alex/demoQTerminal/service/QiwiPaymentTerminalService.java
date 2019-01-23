@@ -7,13 +7,10 @@ import com.example.alex.demoQTerminal.model.UserAccountInfo;
 import com.example.alex.demoQTerminal.repository.PaymentRepository;
 import com.example.alex.demoQTerminal.request.BasePaymentRequest;
 import com.example.alex.demoQTerminal.response.*;
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import javax.servlet.http.HttpServletRequest;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -26,6 +23,7 @@ public class QiwiPaymentTerminalService {
 
     private static final String PAYMENT_ID_PREFIX = "QT_";
     private static final String PAYMENT_SYSTEM_NAME = "QiwiPayTerminal";
+    private static final String PAYMENT_DATE_ATTRIBUTE_NAME = "prv-date";
 
     private IPaymentDataService paymentDataService;
     private PaymentRepository paymentRepository;
@@ -37,21 +35,20 @@ public class QiwiPaymentTerminalService {
         this.paymentRepository = paymentRepository;
     }
 
-    public CheckClientResponse checkClientAndMakePayment(HttpServletRequest request) {
-        log.info("Handle check request, request={}", request);
+    public CheckClientResponse checkClientAndMakePayment(String command, String txn_id, String account, String sum, String ccy) {
         CheckClientResponse clientResponse = new CheckClientResponse();
+        BasePaymentRequest baseRequest = new BasePaymentRequest(command, txn_id, account, sum, ccy);
+        log.info("Handle check request, request={}", baseRequest);
 
         try {
 
-            BasePaymentRequest clientRequest = convertToBaseRequest(request);
-
-            UserAccountInfo userAccountInfo = checkInternal(clientRequest);
+            UserAccountInfo userAccountInfo = checkInternal(baseRequest);
             String paymentId = generatePaymentId(userAccountInfo.getId());
 
-            clientResponse.setOsmpTxnId(clientRequest.getTxn_id());
+            clientResponse.setOsmpTxnId(baseRequest.getTxn_id());
             clientResponse.setPrvTxn(paymentId);
-            clientResponse.setCurrency(clientRequest.getCcy());
-            clientResponse.setSum(clientRequest.getSum());
+            clientResponse.setCurrency(baseRequest.getCcy());
+            clientResponse.setSum(baseRequest.getSum());
             clientResponse.setComment("Ok");
             clientResponse.setResult(ResponseStatus.OK.getStatusCode());
 
@@ -59,59 +56,44 @@ public class QiwiPaymentTerminalService {
             return clientResponse;
 
         } catch (Exception e) {
-            log.warn("Error check user account, request={}", request);
+            log.warn("Error check user account, request={}", baseRequest);
             clientResponse.setResult(ResponseStatus.CHECK_ACCOUNT_ERROR.getStatusCode());
-            clientResponse.setOsmpTxnId(request.getParameter("txn_id"));
+            clientResponse.setOsmpTxnId(baseRequest.getTxn_id());
             return clientResponse;
         }
     }
 
-    private BasePaymentRequest convertToBaseRequest(HttpServletRequest request) {
-
-        BasePaymentRequest baseRequest = new BasePaymentRequest();
-        baseRequest.setTxn_id(request.getParameter("txn_id"));
-        baseRequest.setAccount(request.getParameter("account"));
-        baseRequest.setCcy(request.getParameter("ccy"));
-        String command = request.getParameter("command");
-        baseRequest.setCommand(command);
-        baseRequest.setSum(request.getParameter("sum"));
-        if (command.equals("pay")) {
-            baseRequest.setTxn_date(request.getParameter("tnx_date"));
-        }
-
-        return baseRequest;
-    }
-
-    public PaymentClientResponse confirmPayment(HttpServletRequest request) {
-        log.info("Handle payment request, request={}", request);
+    public PaymentClientResponse confirmPayment(String command, String txn_id, String tnx_date, String account, String sum, String ccy) {
         PaymentClientResponse paymentClientResponse = new PaymentClientResponse();
+        BasePaymentRequest baseRequest = new BasePaymentRequest(command, txn_id, tnx_date, account, sum, ccy);
+        log.info("Handle payment request, request={}", baseRequest);
 
         try {
 
-            BasePaymentRequest paymentRequest = convertToBaseRequest(request);
-            Payment payment = checkPayment(paymentRequest.getTxn_id(), paymentRequest.getAccount(), paymentRequest.getSum(), paymentRequest.getCcy());
+            Payment payment = checkPayment(baseRequest.getTxn_id(), baseRequest.getAccount(), baseRequest.getSum(), baseRequest.getCcy());
 
-            paymentClientResponse.setCurrency(paymentRequest.getCcy());
-            paymentClientResponse.setOsmpTxnId(paymentRequest.getTxn_id());
+            paymentClientResponse.setCurrency(payment.getCurrency());
+            paymentClientResponse.setOsmpTxnId(baseRequest.getTxn_id());
             paymentClientResponse.setPrvTxn(payment.getPaymentId());
             paymentClientResponse.setResult(ResponseStatus.OK.getStatusCode());
-            paymentClientResponse.setSum(paymentRequest.getSum());
+            paymentClientResponse.setSum(String.valueOf(payment.getAmount().doubleValue()));
 
             Payment updatePayment = updatePayment(payment, PaymentStatus.PROCESSED);
-            paymentClientResponse.setFields(new Fields(Collections.singletonList(new Field("prv-date", getDate(updatePayment.getUpdateTimestamp())))));
+            paymentClientResponse.setFields(new Fields(Collections.singletonList(new Field(PAYMENT_DATE_ATTRIBUTE_NAME, getDate(updatePayment.getUpdateTimestamp())))));
 
             return paymentClientResponse;
         } catch (Exception e) {
             log.warn("Handle error confirm payment");
             paymentClientResponse.setResult(ResponseStatus.PAYMENT_ERROR.getStatusCode());
-            paymentClientResponse.setOsmpTxnId(request.getParameter("txn_id"));
+            paymentClientResponse.setOsmpTxnId(baseRequest.getTxn_id());
             return paymentClientResponse;
         }
     }
 
     private Payment checkPayment(String transactionId, String userId, String amount, String currency) {
         Payment byTransactionId = paymentRepository.findByTransactionId(transactionId);
-        if (byTransactionId.getStatus() != PaymentStatus.PENDING ||
+        if (byTransactionId == null ||
+                byTransactionId.getStatus() != PaymentStatus.PENDING ||
                 !byTransactionId.getUserId().equals(userId) ||
                 !byTransactionId.getAmount().equals(new BigDecimal(amount)) ||
                 !byTransactionId.getCurrency().equals(currency)) {
@@ -148,7 +130,7 @@ public class QiwiPaymentTerminalService {
     }
 
     private UserAccountInfo checkInternal(BasePaymentRequest clientRequest) {
-//        Add checks for authorization service(find user by email)
+        //toDo        Add checks for authorization service(find user by email)
 
         return new UserAccountInfo();
     }

@@ -1,20 +1,17 @@
 package com.example.alex.demoQTerminal;
 
 import com.example.alex.demoQTerminal.response.*;
-import net.bytebuddy.dynamic.DynamicType;
 import org.junit.Test;
+
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
 import java.io.File;
 import java.math.BigDecimal;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Arrays;
-import java.util.Date;
 
 public class TestResponseModels {
 
@@ -109,6 +106,7 @@ public class TestResponseModels {
     @Test
     public void testConvertAmount() {
         System.out.println(new BigDecimal("23.3"));
+        System.out.println(String.valueOf(new BigDecimal(3423.354).doubleValue()));
     }
 
 }
