@@ -2,7 +2,6 @@ package com.example.alex.demoQTerminal;
 
 import com.example.alex.demoQTerminal.response.*;
 import org.junit.Test;
-
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
@@ -20,22 +19,8 @@ public class TestResponseModels {
         PaymentClientResponse clientResponse =
                 new PaymentClientResponse("code", "own_code", "32.3", "USD",
                         ResponseStatus.OK.getStatusCode(), "OK",
-                        new Fields(Arrays.asList(new Field("prv-date", LocalDateTime.now().withNano(0)), new Field("prv-date", LocalDateTime.now().withNano(0)))));
-        try {
-
-            File file = new File("file.xml");
-            JAXBContext jaxbContext = JAXBContext.newInstance(PaymentClientResponse.class);
-            Marshaller jaxbMarshaller = jaxbContext.createMarshaller();
-
-            // output pretty printed
-            jaxbMarshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
-
-            jaxbMarshaller.marshal(clientResponse, file);
-            jaxbMarshaller.marshal(clientResponse, System.out);
-
-        } catch (JAXBException e) {
-            e.printStackTrace();
-        }
+                        Arrays.asList(new Field("prv-date", LocalDateTime.now().withNano(0)), new Field("prv-date", LocalDateTime.now().withNano(0))));
+        writeToFile(clientResponse, PaymentClientResponse.class, "file3.xml");
 
     }
 
@@ -44,21 +29,7 @@ public class TestResponseModels {
         CheckClientResponse clientResponse = new CheckClientResponse();
         clientResponse.setOsmpTxnId("tnx_code");
         clientResponse.setResult(ResponseStatus.CHECK_ACCOUNT_ERROR.getStatusCode());
-        try {
-
-            File file = new File("file2.xml");
-            JAXBContext jaxbContext = JAXBContext.newInstance(CheckClientResponse.class);
-            Marshaller jaxbMarshaller = jaxbContext.createMarshaller();
-
-            // output pretty printed
-            jaxbMarshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
-
-            jaxbMarshaller.marshal(clientResponse, file);
-            jaxbMarshaller.marshal(clientResponse, System.out);
-
-        } catch (JAXBException e) {
-            e.printStackTrace();
-        }
+       writeToFile(clientResponse, CheckClientResponse.class, "file2.xml");
     }
 
 
@@ -72,17 +43,21 @@ public class TestResponseModels {
                         "USD",
                         ResponseStatus.OK.getStatusCode(),
                         "Ok");
+       writeToFile(clientResponse, CheckClientResponse.class, "file.xml");
+    }
+
+    private <T> void writeToFile(T someRequest, Class clazz, String filePath) {
         try {
 
-            File file = new File("file.xml");
-            JAXBContext jaxbContext = JAXBContext.newInstance(CheckClientResponse.class);
+            File file = new File(filePath);
+            JAXBContext jaxbContext = JAXBContext.newInstance(clazz);
             Marshaller jaxbMarshaller = jaxbContext.createMarshaller();
 
             // output pretty printed
             jaxbMarshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
 
-            jaxbMarshaller.marshal(clientResponse, file);
-            jaxbMarshaller.marshal(clientResponse, System.out);
+            jaxbMarshaller.marshal(someRequest, file);
+            jaxbMarshaller.marshal(someRequest, System.out);
 
         } catch (JAXBException e) {
             e.printStackTrace();

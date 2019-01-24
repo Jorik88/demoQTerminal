@@ -3,10 +3,8 @@ package com.example.alex.demoQTerminal.response;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.*;
+import java.util.List;
 
 @Data
 @AllArgsConstructor
@@ -15,11 +13,12 @@ import javax.xml.bind.annotation.XmlRootElement;
 @XmlRootElement(name = "response")
 public class PaymentClientResponse extends CheckClientResponse {
 
-    @XmlElement(name = "fields")
-    private Fields fields;
+    @XmlElementWrapper(name = "fields")
+    @XmlElement(name = "field")
+    private List<Field> field;
 
-    public PaymentClientResponse(String osmpTxnId, String prvTxn, String sum, String currency, int result, String comment, Fields fields) {
+    public PaymentClientResponse(String osmpTxnId, String prvTxn, String sum, String currency, int result, String comment, List<Field> fields) {
         super(osmpTxnId, prvTxn, sum, currency, result, comment);
-        this.fields = fields;
+        this.field = fields;
     }
 }

@@ -79,7 +79,7 @@ public class QiwiPaymentTerminalService {
             paymentClientResponse.setSum(String.valueOf(payment.getAmount().doubleValue()));
 
             Payment updatePayment = updatePayment(payment, PaymentStatus.PROCESSED);
-            paymentClientResponse.setFields(new Fields(Collections.singletonList(new Field(PAYMENT_DATE_ATTRIBUTE_NAME, getDate(updatePayment.getUpdateTimestamp())))));
+            paymentClientResponse.setField(Collections.singletonList(new Field(PAYMENT_DATE_ATTRIBUTE_NAME, getDate(updatePayment.getUpdateTimestamp()))));
 
             return paymentClientResponse;
         } catch (Exception e) {
