@@ -1,12 +1,12 @@
 package com.example.alex.demoQTerminal.response;
 
-import com.migesok.jaxb.adapter.javatime.LocalDateTimeXmlAdapter;
+import com.example.alex.demoQTerminal.utils.DateAdapter;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import javax.xml.bind.annotation.*;
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
-import java.time.LocalDateTime;
+import java.util.Date;
 
 @Data
 @AllArgsConstructor
@@ -18,8 +18,8 @@ public class Field {
     @XmlAttribute(name = "name")
     private String name;
 
-    @XmlJavaTypeAdapter(LocalDateTimeXmlAdapter.class)
+    @XmlJavaTypeAdapter(DateAdapter.class)
     @XmlValue
-    private LocalDateTime value;
+    private Date value;
 
 }

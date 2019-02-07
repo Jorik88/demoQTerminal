@@ -6,16 +6,17 @@ import com.example.alex.demoQTerminal.model.PaymentResponse;
 import com.example.alex.demoQTerminal.model.UserAccountInfo;
 import com.example.alex.demoQTerminal.repository.PaymentRepository;
 import com.example.alex.demoQTerminal.request.BasePaymentRequest;
-import com.example.alex.demoQTerminal.response.*;
+import com.example.alex.demoQTerminal.response.CheckClientResponse;
+import com.example.alex.demoQTerminal.response.Field;
+import com.example.alex.demoQTerminal.response.PaymentClientResponse;
+import com.example.alex.demoQTerminal.response.ResponseStatus;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
-import java.time.Instant;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.util.Collections;
+import java.util.Date;
 
 @Slf4j
 @Service
@@ -79,7 +80,7 @@ public class QiwiPaymentTerminalService {
             paymentClientResponse.setSum(String.valueOf(payment.getAmount().doubleValue()));
 
             Payment updatePayment = updatePayment(payment, PaymentStatus.PROCESSED);
-            paymentClientResponse.setField(Collections.singletonList(new Field(PAYMENT_DATE_ATTRIBUTE_NAME, getDate(updatePayment.getUpdateTimestamp()))));
+            paymentClientResponse.setField(Collections.singletonList(new Field(PAYMENT_DATE_ATTRIBUTE_NAME, new Date())));
 
             return paymentClientResponse;
         } catch (Exception e) {
@@ -137,10 +138,6 @@ public class QiwiPaymentTerminalService {
 
     private String generatePaymentId(String userId) {
         return PAYMENT_ID_PREFIX + userId + "_" + System.currentTimeMillis();
-    }
-
-    private LocalDateTime getDate(long seconds) {
-        return LocalDateTime.ofInstant(Instant.ofEpochMilli(1523261382698L), ZoneId.systemDefault()).withNano(0);
     }
 
 }

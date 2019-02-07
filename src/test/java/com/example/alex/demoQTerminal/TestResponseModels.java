@@ -11,6 +11,7 @@ import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Arrays;
+import java.util.Date;
 
 public class TestResponseModels {
 
@@ -19,7 +20,7 @@ public class TestResponseModels {
         PaymentClientResponse clientResponse =
                 new PaymentClientResponse("code", "own_code", "32.3", "USD",
                         ResponseStatus.OK.getStatusCode(), "OK",
-                        Arrays.asList(new Field("prv-date", LocalDateTime.now().withNano(0)), new Field("prv-date", LocalDateTime.now().withNano(0))));
+                        Arrays.asList(new Field("prv-date", new Date()), new Field("prv-date", new Date())));
         writeToFile(clientResponse, PaymentClientResponse.class, "file3.xml");
 
     }
